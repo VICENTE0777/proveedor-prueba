@@ -29,14 +29,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build Docker image (local tag)
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/cliente-prueba:${{ github.sha }} .
+          docker build -t cliente-prueba:${{ github.sha }} .
 
       - name: Login Docker Hub
         if: inputs.push_image
         run: |
           echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+
+      - name: Tag Docker image for push
+        if: inputs.push_image
+        run: |
+          docker tag cliente-prueba:${{ github.sha }} ${{ secrets.DOCKER_USER }}/cliente-prueba:${{ github.sha }}
 
       - name: Push Docker image
         if: inputs.push_image
