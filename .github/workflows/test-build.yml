@@ -1,0 +1,33 @@
+name: Test and Build Reusable
+
+on:
+  workflow_call:
+    inputs:
+      push_image:
+        required: true
+        type: boolean
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: echo "Tests OK"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t myapp:${{ github.sha }} .
+
+      - name: Login Docker Hub
+        if: inputs.push_image
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+
+      - name: Push Docker image
+        if: inputs.push_image
+        run: docker push myapp:${{ github.sha }}
