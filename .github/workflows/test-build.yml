@@ -29,10 +29,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Docker image (local tag)
+      # Siempre construye con un tag local sin usuario
+      - name: Build Docker image
         run: |
           docker build -t cliente-prueba:${{ github.sha }} .
 
+      # Solo en release: login, retag y push
       - name: Login Docker Hub
         if: inputs.push_image
         run: |
