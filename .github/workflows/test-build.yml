@@ -1,51 +1,25 @@
-name: Test and Build Reusable
-
+name: Build Infraestructura Base
 on:
   workflow_call:
     inputs:
-      push_image:
+      environment:
         required: true
-        type: boolean
-    secrets:
-      DOCKER_USER:
-        required: false
-      DOCKER_PASS:
-        required: false
+        type: string
+      project_name:
+        required: true
+        type: string
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
 
-      - name: Run tests
-        run: echo "Tests OK"
+      - name: Inicializar Terraform
+        run: terraform init
 
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Siempre construye con un tag local sin usuario
-      - name: Build Docker image
-        run: |
-          docker build -t cliente-prueba:${{ github.sha }} .
-
-      # Solo en release: login, retag y push
-      - name: Login Docker Hub
-        if: inputs.push_image
-        run: |
-          echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
-
-      - name: Tag Docker image for push
-        if: inputs.push_image
-        run: |
-          docker tag cliente-prueba:${{ github.sha }} ${{ secrets.DOCKER_USER }}/cliente-prueba:${{ github.sha }}
-
-      - name: Push Docker image
-        if: inputs.push_image
-        run: |
-          docker push ${{ secrets.DOCKER_USER }}/cliente-prueba:${{ github.sha }}
+      - name: Aplicar infraestructura
+        run: terraform apply -auto-approve
