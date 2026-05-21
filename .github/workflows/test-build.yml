@@ -1,20 +1,15 @@
-name: Build Infraestructura Base
-on:
-  workflow_call:
-    inputs:
-      environment:
-        required: true
-        type: string
-      project_name:
-        required: true
-        type: string
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout código
+      - name: Checkout cliente
         uses: actions/checkout@v4
+
+      - name: Checkout proveedor
+        uses: actions/checkout@v4
+        with:
+          repository: VICENTE0777/proveedor-prueba
+          path: infra
 
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v2
@@ -22,7 +17,7 @@ jobs:
           terraform_version: 1.5.7
 
       - name: Inicializar Terraform
-        run: terraform init
+        run: terraform -chdir=infra init
 
       - name: Aplicar infraestructura
-        run: terraform apply -auto-approve
+        run: terraform -chdir=infra apply -auto-approve
